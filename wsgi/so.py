@@ -72,15 +72,10 @@ class ServiceOrchstratorExecution(object):
         """
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
-            if tmp['state'] != 'CREATE_COMPLETE':
-                return 'Stack is currently being deployed...'
-            else:
-                out = self.deployer.check_output('SampleOutput', self.stack_id,
-                                                 self.token)
-                return 'All good - Stack id is: ' + str(self.stack_id) + \
-                       ' - Output is: ' + str(out)
+
+            return (tmp['state'], self.stack_id)
         else:
-            return 'Stack is not deployed atm.'
+            return ('Unknown', 'N/A')
 
 
 class ServiceOrchstratorDecision(object):

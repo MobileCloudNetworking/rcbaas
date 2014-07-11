@@ -8,11 +8,10 @@ Goto the directory of mcn_cc_sdk & setup virtenv (Note: could be done easier):
 Install SDK and required packages:
 
     $ pip install pbr six iso8601 babel requests python-heatclient python-keystoneclient
-    $ python setup.py install
+    $ python setup.py install  # in the mcn_cc_sdk directory.
 
 Run SO:
 
-    $ cd misc/sample_so
     $ export OPENSHIFT_PYTHON_DIR=/tmp/mcn_test_virt
     $ export OPENSHIFT_REPO_DIR=<path to sample so>
     $ python ./wsgi/application
@@ -22,10 +21,19 @@ In a new terminal do get a token from keystone (token must belong to a user whic
     $ keystone token-get
     $ export KID='...'
 
-You can now visit the SO interface at [here](localhost:8051):
+You can now visit the SO interface [here](http://localhost:8051/orchestrator/default):
 
-    $ curl -X POST localhost:8051/action=init -H 'Auth-Token: '$KID
-    $ curl -X GET localhost:8051/
-    $ curl -X GET localhost:8051/state
-    $ curl -X POST localhost:8051/action=deploy
-    $ curl -X POST localhost:8051/action=dispose
+    $ curl -v -X GET http://localhost:8051/orchestrator/default \
+          -H 'X-Auth-token: '$KID
+    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=init" \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: init; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID
+    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=deploy" \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID
+    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=provision" \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID
