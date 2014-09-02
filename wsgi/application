@@ -53,6 +53,7 @@ class MyBackend(occi_ext.Backend):
 
     def init_me(self, entity, attributes, extras):
         token = extras['token']
+        tenant = extras['tenant_name']
         self.so = so.ServiceOrchstrator(token)
         entity.actions = [occi_ext.DEPLOY_ACTION]
 

@@ -20,20 +20,25 @@ In a new terminal do get a token from keystone (token must belong to a user whic
 
     $ keystone token-get
     $ export KID='...'
+    $ export TENANT='...'
 
 You can now visit the SO interface [here](http://localhost:8051/orchestrator/default):
 
     $ curl -v -X GET http://localhost:8051/orchestrator/default \
-          -H 'X-Auth-token: '$KID
+          -H 'X-Auth-token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
     $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=init" \
           -H 'Content-Type: text/occi' \
           -H 'Category: init; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
-          -H 'X-Auth-Token: '$KID
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
     $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=deploy" \
           -H 'Content-Type: text/occi' \
           -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
-          -H 'X-Auth-Token: '$KID
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
     $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=provision" \
           -H 'Content-Type: text/occi' \
           -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
-          -H 'X-Auth-Token: '$KID
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
