@@ -56,6 +56,7 @@ class MyBackend(occi_ext.Backend):
             pass
 
     def init_me(self, entity, attributes, extras):
+        # XXX: This method will disappear soon!
         token = extras['token']
         tenant = extras['tenant_name']
         self.so = so.ServiceOrchstrator(token)
