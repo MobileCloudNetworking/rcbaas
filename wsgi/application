@@ -44,6 +44,10 @@ class MyBackend(occi_ext.Backend):
             entity.attributes['occi.mcn.stack.state'] = state
             entity.attributes['occi.mcn.stack.id'] = stack_id
 
+    def update(self, old, new, extras):
+        # TODO: attributes would need to be defined by a mixin.
+        old.attributes.update(new.attributes)
+
     def delete(self, entity, extras):
         if occi_ext.INIT_ACTION not in entity.actions:
             self.so.so_e.dispose()
