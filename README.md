@@ -22,7 +22,7 @@ In a new terminal do get a token from keystone (token must belong to a user whic
     $ export KID='...'
     $ export TENANT='...'
 
-You can now visit the SO interface [here](http://localhost:8051/orchestrator/default):
+You can now visit the SO interface [here](http://localhost:8051/orchestrator/default).
 
 ## Sample requests
 
