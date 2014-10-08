@@ -26,23 +26,23 @@ You can now visit the SO interface [here](http://localhost:8051/orchestrator/def
 
 ## Sample requests
 
-Get state of the SO + service instance:
+Initialize the SO and remember the return URI:
 
-    $ curl -v -X GET http://localhost:8051/orchestrator/default \
+    $ curl -v -X POST http://localhost:8051/orchestrator/ \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: orchestrator; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT
 
-Initialize the SO:
+Get state of the SO + service instance:
 
-    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=init" \
-          -H 'Content-Type: text/occi' \
-          -H 'Category: init; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+    $ curl -v -X GET http://localhost:8051/orchestrator/<id> \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT
 
 Trigger deployment of the service instance:
 
-    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=deploy" \
+    $ curl -v -X POST "http://localhost:8051/orchestrator/<id>?action=deploy" \
           -H 'Content-Type: text/occi' \
           -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -50,7 +50,7 @@ Trigger deployment of the service instance:
 
 Trigger provisioning of the service instance:
 
-    $ curl -v -X POST "http://localhost:8051/orchestrator/default?action=provision" \
+    $ curl -v -X POST "http://localhost:8051/orchestrator/<id>?action=provision" \
           -H 'Content-Type: text/occi' \
           -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -58,7 +58,7 @@ Trigger provisioning of the service instance:
 
 Trigger update on SO + service instance:
 
-    $ curl -v -X POST http://localhost:8051/orchestrator/default \
+    $ curl -v -X POST http://localhost:8051/orchestrator/<id> \
           -H 'Content-Type: text/occi' \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT \
@@ -66,6 +66,6 @@ Trigger update on SO + service instance:
 
 Trigger delete of SO + service instance:
 
-    $ curl -v -X DELETE http://localhost:8051/orchestrator/default \
+    $ curl -v -X DELETE http://localhost:8051/orchestrator/<id> \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT

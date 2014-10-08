@@ -35,8 +35,15 @@ from sdk.mcn import occi_ext
 
 class MyBackend(occi_ext.Backend):
 
+    def create(self, entity, extras):
+        token = extras['token']
+        tenant = extras['tenant_name']
+        self.so = so.ServiceOrchstrator(token)
+        self.so.so_e.design()
+        entity.actions = [occi_ext.DEPLOY_ACTION]
+
     def retrieve(self, entity, extras):
-        if occi_ext.INIT_ACTION in entity.actions:
+        if occi_ext.DEPLOY_ACTION in entity.actions:
             entity.attributes['occi.mcn.stack.state'] = 'uninitialized'
             entity.attributes['occi.mcn.stack.id'] = 'N/A'
         else:
@@ -49,18 +56,9 @@ class MyBackend(occi_ext.Backend):
         old.attributes.update(new.attributes)
 
     def delete(self, entity, extras):
-        if occi_ext.INIT_ACTION not in entity.actions:
-            self.so.so_e.dispose()
-        else:
-            # Nothing to do...
-            pass
+        self.so.so_e.dispose()
 
-    def init_me(self, entity, attributes, extras):
-        # XXX: This method will disappear soon!
-        token = extras['token']
-        tenant = extras['tenant_name']
-        self.so = so.ServiceOrchstrator(token)
-        entity.actions = [occi_ext.DEPLOY_ACTION]
+    # Actions
 
     def deploy_me(self, entity, attributes, extras):
         self.so.so_e.deploy()
