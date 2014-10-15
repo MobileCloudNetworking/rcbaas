@@ -44,7 +44,7 @@ Get state of the SO + service instance:
 
 Trigger deployment of the service instance:
 
-    $ curl -v -X POST "http://localhost:8051/orchestrator/<id>?action=deploy" \
+    $ curl -v -X POST http://localhost:8051/orchestrator/<id>?action=deploy \
           -H 'Content-Type: text/occi' \
           -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -52,7 +52,7 @@ Trigger deployment of the service instance:
 
 Trigger provisioning of the service instance:
 
-    $ curl -v -X POST "http://localhost:8051/orchestrator/<id>?action=provision" \
+    $ curl -v -X POST http://localhost:8051/orchestrator/<id>?action=provision \
           -H 'Content-Type: text/occi' \
           -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
