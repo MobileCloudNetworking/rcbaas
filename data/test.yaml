@@ -1,5 +1,7 @@
-Outputs:
-  SampleOutput:
-    Value:
+heat_template_version: 2013-05-23
+
+outputs:
+  sample_output:
+    value:
       "PGW is at IP s1://10.0.0.1"
-    Description: IP of PGW - will be assigned by heat in future.
+    description: IP of PGW - will be assigned by heat in future.

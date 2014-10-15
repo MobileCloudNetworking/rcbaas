@@ -7,7 +7,7 @@ Goto the directory of mcn_cc_sdk & setup virtenv (Note: could be done easier):
 
 Install SDK and required packages:
 
-    $ pip install pbr six iso8601 babel requests python-heatclient python-keystoneclient
+    $ pip install pbr six iso8601 babel requests python-heatclient==0.2.9 python-keystoneclient
     $ python setup.py install  # in the mcn_cc_sdk directory.
 
 Run SO:
@@ -15,6 +15,8 @@ Run SO:
     $ export OPENSHIFT_PYTHON_DIR=/tmp/mcn_test_virt
     $ export OPENSHIFT_REPO_DIR=<path to sample so>
     $ python ./wsgi/application
+
+Optionally you can also set the DESIGN_URI if your OpenStack install is not local.
 
 In a new terminal do get a token from keystone (token must belong to a user which has the admin role for the tenant):
 
