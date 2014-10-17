@@ -37,9 +37,9 @@ class ServiceOrchstratorExecution(object):
         self.template = f.read()
         f.close()
         self.stack_id = None
-        # make sure we can talk to deployer...
-        # self.deployer = util.get_deployer(self.token)
-        self.deployer = util.get_deployer(self.token, url_type='public', tenant_name=self.tenant_name)
+        self.deployer = util.get_deployer(self.token,
+                                          url_type='public',
+                                          tenant_name=self.tenant_name)
 
     def design(self):
         """
