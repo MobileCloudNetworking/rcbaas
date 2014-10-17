@@ -30,7 +30,7 @@ You can now visit the SO interface [here](http://localhost:8051/orchestrator/def
 
 Initialize the SO and remember the return URI:
 
-    $ curl -v -X POST http://localhost:8051/orchestrator/ \
+    $ curl -v -X PUT http://localhost:8051/orchestrator/default \
           -H 'Content-Type: text/occi' \
           -H 'Category: orchestrator; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -38,13 +38,13 @@ Initialize the SO and remember the return URI:
 
 Get state of the SO + service instance:
 
-    $ curl -v -X GET http://localhost:8051/orchestrator/<id> \
+    $ curl -v -X GET http://localhost:8051/orchestrator/default \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT
 
 Trigger deployment of the service instance:
 
-    $ curl -v -X POST http://localhost:8051/orchestrator/<id>?action=deploy \
+    $ curl -v -X POST http://localhost:8051/orchestrator/default?action=deploy \
           -H 'Content-Type: text/occi' \
           -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -52,7 +52,7 @@ Trigger deployment of the service instance:
 
 Trigger provisioning of the service instance:
 
-    $ curl -v -X POST http://localhost:8051/orchestrator/<id>?action=provision \
+    $ curl -v -X POST http://localhost:8051/orchestrator/default?action=provision \
           -H 'Content-Type: text/occi' \
           -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
           -H 'X-Auth-Token: '$KID \
@@ -60,7 +60,7 @@ Trigger provisioning of the service instance:
 
 Trigger update on SO + service instance:
 
-    $ curl -v -X POST http://localhost:8051/orchestrator/<id> \
+    $ curl -v -X POST http://localhost:8051/orchestrator/default \
           -H 'Content-Type: text/occi' \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT \
@@ -68,6 +68,6 @@ Trigger update on SO + service instance:
 
 Trigger delete of SO + service instance:
 
-    $ curl -v -X DELETE http://localhost:8051/orchestrator/<id> \
+    $ curl -v -X DELETE http://localhost:8051/orchestrator/default \
           -H 'X-Auth-Token: '$KID \
           -H 'X-Tenant-Name: '$TENANT
