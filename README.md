@@ -28,7 +28,7 @@ You can now visit the SO interface [here](http://localhost:8051/orchestrator/def
 
 ## Sample requests
 
-Initialize the SO and remember the return URI:
+Initialize the SO:
 
     $ curl -v -X PUT http://localhost:8051/orchestrator/default \
           -H 'Content-Type: text/occi' \
