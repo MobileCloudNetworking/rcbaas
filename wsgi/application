@@ -47,9 +47,13 @@ class MyBackend(occi_ext.Backend):
             entity.attributes['occi.mcn.stack.state'] = 'uninitialized'
             entity.attributes['occi.mcn.stack.id'] = 'N/A'
         else:
-            state, stack_id = self.so.so_e.state()
+            state, stack_id, stack_output = self.so.so_e.state()
             entity.attributes['occi.mcn.stack.state'] = state
             entity.attributes['occi.mcn.stack.id'] = stack_id
+            stk_op = stack_output
+            print stk_op
+            for kv in stk_op:
+                entity.attributes[kv['output_key']] = kv['output_value']
 
     def update(self, old, new, extras):
         # TODO: attributes would need to be defined by a mixin.

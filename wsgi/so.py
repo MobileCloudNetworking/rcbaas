@@ -24,7 +24,7 @@ from sdk.mcn import util
 HERE = os.environ['OPENSHIFT_REPO_DIR']
 
 
-class ServiceOrchstratorExecution(object):
+class ServiceOrchestratorExecution(object):
     """
     Sample SO execution part.
     """
@@ -75,12 +75,12 @@ class ServiceOrchstratorExecution(object):
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
 
-            return (tmp['state'], self.stack_id)
+            return (tmp['state'], self.stack_id, tmp['output'])
         else:
             return ('Unknown', 'N/A')
 
 
-class ServiceOrchstratorDecision(object):
+class ServiceOrchestratorDecision(object):
     """
     Sample Decision part of SO.
     """
@@ -96,12 +96,12 @@ class ServiceOrchstratorDecision(object):
         pass
 
 
-class ServiceOrchstrator(object):
+class ServiceOrchestrator(object):
     """
     Sample SO.
     """
 
     def __init__(self, token, tenant):
-        self.so_e = ServiceOrchstratorExecution(token, tenant)
-        self.so_d = ServiceOrchstratorDecision(self.so_e, token)
+        self.so_e = ServiceOrchestratorExecution(token, tenant)
+        self.so_d = ServiceOrchestratorDecision(self.so_e, token)
         # so_d.start()
