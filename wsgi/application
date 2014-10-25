@@ -38,7 +38,7 @@ class MyBackend(occi_ext.Backend):
     def create(self, entity, extras):
         token = extras['token']
         tenant = extras['tenant_name']
-        self.so = so.ServiceOrchstrator(token, tenant)
+        self.so = so.ServiceOrchestrator(token, tenant)
         self.so.so_e.design()
         entity.actions = [occi_ext.DEPLOY_ACTION]
 
