@@ -2,49 +2,7 @@
 
 This is the MCN Service Manager.
 
-To checkout the code and also setup the example SO, do the following:
-
-    $ git clone git@git.mobile-cloud-networking.eu:cloudcontroller/mcn_sm.git
-    $ cd mcn_sm
-    $ git submodule init
-    $ git submodule update
-
-An example and naive example of an EPC Service Manager can be found in `./example`
-For service manager implementers they simply need to follow this example for their own service.
-
-You can run this example by `python ./example/demo_service_manager.py`
-
-The SM library is under mcn/sm
-
-The example service manager (`example/demo_service_manager.py`) uses and extends this library.
-
-## Quickly Getting Started
-
-1. Clone [this project](https://git.mobile-cloud-networking.eu/cloudcontroller/mcn_sm)
-
-2. Install the service manager library:
-
-        $ python ./setup.py install
-
-3. Use the example service manager as your starting point (`example/demo_service_manager.py`). Add your service type 
-definition. For example:
-
-        my_svc_type = Type('http://schemas.mobile-cloud-networking.eu/occi/sm#',
-        'mysvc',
-        title='My service',
-        attributes={
-                   'mcn.my.admin_password': 'mutable',
-                    },
-        related=[Resource.kind],
-        actions=[])
-
-4. Take a copy of `etc/sm.cfg` and customise it according to your own service (e.g. setting the path to your SO bundle)
-
-5. Edit the existing SO implementation and make it work for you.
-
-5. Run your service manager. Example using the demo:
-
-        $ python ./demo_service_manager.py -c ../etc/sm.cfg
+You can run this example by `python ./d-rcb-sm/rcb-sm.py  -c ./etc/sm.cfg`
 
 ## Authentication
 Authentication and access to the SM is mediated by OpenStack keystone. In order to make a service instantiation request
