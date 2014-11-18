@@ -1,4 +1,4 @@
-#   Copyright (c) 2013-2015, Intel Performance Learning Solutions Ltd, Intel Corporation.
+#   Copyright (c) 2014, Zuercher Hochschule fuer Angewandte Wissenschaften.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ Setuptools script.
 
 from setuptools import setup
 
-setup(name='sample_so',
+setup(name='rcb_so',
       version='0.2',
-      description='Sample SO',
-      author='Intel Performance Learning Solutions Ltd, Intel Corporation.',
-      author_email='thijs.metsch@intel.com',
-      url='http://www.intel.com',
+      description='RCB SO',
+      author='Zuercher Hochschule fuer Angewandte Wissenschaften',
+      author_email='edmo@zhaw.ch',
+      url='http://blog.zhaw.ch/icclab',
       license='Apache 2.0',
       packages=['wsgi', 'mcn_cc_sdk'],
 )
