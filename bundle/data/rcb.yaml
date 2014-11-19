@@ -22,10 +22,10 @@ parameters:
   image:
     type: string
     description: Server image id to use
-    default: rcb-cyclops
+    default: cyclops-rcb
     constraints:
     - allowed_values:
-      - rcb-cyclops
+      - cyclops-rcb
       description: must be a valid cyclops image id
 
   flavor:
