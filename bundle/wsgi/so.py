@@ -1,4 +1,4 @@
-#   Copyright (c) 2013-2015, Intel Performance Learning Solutions Ltd, Intel Corporation.
+# Copyright 2014 Zuercher Hochschule fuer Angewandte Wissenschaften
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ class ServiceOrchestratorExecution(object):
         # read template...
         self.token = token
         self.tenant_name = tenant
-        f = open(os.path.join(HERE, 'data', 'rcb.yaml'))
+        f = open(os.path.join(HERE, 'data', 'test.yaml'))
         self.template = f.read()
         f.close()
         self.stack_id = None
