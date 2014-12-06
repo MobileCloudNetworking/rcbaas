@@ -75,8 +75,12 @@ class ServiceOrchestratorExecution(object):
         """
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
-
-            return tmp['state'], self.stack_id, tmp['output']
+            output = ''
+            try:
+                output = tmp['output']
+            except KeyError:
+                pass
+            return tmp['state'], self.stack_id, output
         else:
             return 'Unknown', 'N/A', ''
 
