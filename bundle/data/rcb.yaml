@@ -44,6 +44,25 @@ parameters:
     type: string
     default: edmo-bart
     label: SSH Key
+  
+  network_id:
+    description: The network to attach the RCB service to
+    type: string
+    default: 30e8fc23-bef0-4e94-bf31-2a136d95ff90
+    label: Network ID
+
+
+  public_net:
+    type: string
+    description: >
+      ID of public network net04_ext
+    default: d6ce8ab6-1be8-4c85-8067-9c77d7600ffa
+
+  private_mgmt_net:
+    type: string
+    description: >
+      ID of private network mgmt
+    default: 30e8fc23-bef0-4e94-bf31-2a136d95ff90
 
 resources:
   rcb_si_security_group:
@@ -54,16 +73,16 @@ resources:
       - {"CidrIp": 0.0.0.0/0, "FromPort": "22", "ToPort": "22", "IpProtocol": "tcp"}
       - {"CidrIp": 0.0.0.0/0, "FromPort": "8000", "ToPort": "8000", "IpProtocol": "tcp"}
 
-  rcb_si_ip:
-     type: "AWS::EC2::EIP"
+  rcb_port_mgmt:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: private_mgmt_net }
 
-  rcb_si_ip_asso:
-     type: "AWS::EC2::EIPAssociation"
-     properties:
-       EIP:
-         Ref: rcb_si_ip
-       InstanceId:
-         Ref: rcb_si
+  rcb_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network_id: { get_param: public_net }
+      port_id: { get_resource: rcb_port_mgmt }
 
   rcb_si:
     type: OS::Nova::Server
@@ -74,15 +93,16 @@ resources:
       key_name: { get_param: sshkey }
       security_groups:
       - {get_resource: rcb_si_security_group}
-      #user_data_format: RAW
+      networks:
+        - port : { get_resource: rcb_port_mgmt }
       config_drive: "true"
       user_data:
         str_replace:
           template: |
             #!/bin/bash
-            export DEBIAN_FRONTEND=noninteractive
-            cd /root/icclab-rcb
-            nohup ./run.sh &
+            # export DEBIAN_FRONTEND=noninteractive
+            # cd /root/icclab-rcb
+            # nohup ./run.sh &
 
 outputs:
   mcn.endpoint.rcb.mgt:
@@ -93,4 +113,3 @@ outputs:
         params:
           "%host%":
             get_resource: rcb_si_ip
-
