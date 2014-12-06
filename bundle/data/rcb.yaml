@@ -22,7 +22,7 @@ parameters:
   image:
     type: string
     description: Server image id to use
-    default: cyclops-rcb
+    default: 2014-12-06-cyclops-udr
     constraints:
     - allowed_values:
       - cyclops-rcb
