@@ -25,7 +25,7 @@ parameters:
     default: 2014-12-06-cyclops-udr
     constraints:
     - allowed_values:
-      - cyclops-rcb
+      - 2014-12-06-cyclops-udr
       description: must be a valid cyclops image id
 
   flavor:
