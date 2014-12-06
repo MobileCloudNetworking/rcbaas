@@ -106,10 +106,5 @@ resources:
 
 outputs:
   mcn.endpoint.rcb.mgt:
-    description: This is the RCB SI mgt IP endpoint.
-    value:
-      str_replace:
-        template: http://%host%:8000
-        params:
-          "%host%":
-            get_resource: rcb_si_ip
+    description: "IP addresses of the RCB service:"
+      value: { get_attr: [rcb_floating_ip, floating_ip_address] }
