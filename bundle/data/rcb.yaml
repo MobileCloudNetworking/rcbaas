@@ -106,5 +106,5 @@ resources:
 
 outputs:
   mcn.endpoint.rcb.mgt:
-    description: "IP addresses of the RCB service:"
-      value: { get_attr: [rcb_floating_ip, floating_ip_address] }
+    description: "IP addresses of the RCB service."
+    value: { get_attr: [rcb_floating_ip, floating_ip_address] }
