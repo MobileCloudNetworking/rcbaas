@@ -76,9 +76,9 @@ class ServiceOrchestratorExecution(object):
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
 
-            return (tmp['state'], self.stack_id, tmp['output'])
+            return tmp['state'], self.stack_id, tmp['output']
         else:
-            return ('Unknown', 'N/A')
+            return 'Unknown', 'N/A', ''
 
 
 class ServiceOrchestratorDecision(object):
