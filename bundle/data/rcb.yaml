@@ -100,9 +100,13 @@ resources:
         str_replace:
           template: |
             #!/bin/bash
-            # export DEBIAN_FRONTEND=noninteractive
-            # cd /root/icclab-rcb
-            # nohup ./run.sh &
+            export DEBIAN_FRONTEND=noninteractive
+            chmod +x /var/www/html/udr/bill/index.html
+            chmod +x /usr/share/grafana/v1.9.0_rc1/config.js
+            export FIP=`curl -s -X GET http://169.254.169.254/2009-04-04/meta-data/public-ipv4`
+            sed -i s/160.85.4.49/$FIP/ /var/www/html/udr/bill/index.html
+            sed -i s/160.85.4.49/$FIP/ /usr/share/grafana/v1.9.0_rc1/config.js
+            sudo service apache2 restart
 
 outputs:
   mcn.endpoint.rcb.mgt:
