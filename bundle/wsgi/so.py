@@ -52,6 +52,8 @@ class ServiceOrchestratorExecution(object):
         """
         deploy SICs.
         """
+        # XXX there is some internal configuration without external configuration dependencies done in this phase
+        # XXX This is acceptable
         if self.stack_id is None:
             self.stack_id = self.deployer.deploy(self.template, self.token)
 
@@ -59,6 +61,7 @@ class ServiceOrchestratorExecution(object):
         """
         (Optional) if not done during deployment - provision.
         """
+        # XXX If the service instance depends on external configuration then this configuration must be done here
         pass
 
     def dispose(self):
