@@ -48,21 +48,20 @@ parameters:
   network_id:
     description: The network to attach the RCB service to
     type: string
-    default: 30e8fc23-bef0-4e94-bf31-2a136d95ff90
+    default: 7bc6538f-1c7d-4648-88ef-cda5cdfe452e
     label: Network ID
-
 
   public_net:
     type: string
     description: >
       ID of public network net04_ext
-    default: d6ce8ab6-1be8-4c85-8067-9c77d7600ffa
+    default: 1b31bc6b-8aff-4e13-912a-d9c9a427475a
 
   private_mgmt_net:
     type: string
     description: >
       ID of private network mgmt
-    default: 30e8fc23-bef0-4e94-bf31-2a136d95ff90
+    default: 7bc6538f-1c7d-4648-88ef-cda5cdfe452e
 
 resources:
   rcb_si_security_group:
@@ -76,7 +75,9 @@ resources:
       - {"CidrIp": 0.0.0.0/0, "FromPort": "3000", "ToPort": "3000", "IpProtocol": "tcp"}
       - {"CidrIp": 0.0.0.0/0, "FromPort": "8086", "ToPort": "8086", "IpProtocol": "tcp"}
       - {"CidrIp": 0.0.0.0/0, "FromPort": "8083", "ToPort": "8083", "IpProtocol": "tcp"}
-
+      - {"CidrIp": 0.0.0.0/0, "FromPort": "4567", "ToPort": "4567", "IpProtocol": "tcp"}
+      - {"CidrIp": 0.0.0.0/0, "FromPort": "5671", "ToPort": "5671", "IpProtocol": "tcp"}
+      - {"CidrIp": 0.0.0.0/0, "FromPort": "6379", "ToPort": "6379", "IpProtocol": "tcp"}
 
   rcb_port_mgmt:
     type: OS::Neutron::Port
@@ -109,8 +110,8 @@ resources:
             export FIP=`curl -s -X GET http://169.254.169.254/2009-04-04/meta-data/public-ipv4`
             chmod +x /var/www/html/udr/bill/index.html
             chmod +x /usr/share/grafana/v1.9.0_rc1/config.js
-            sed -i s/160.85.4.49/$FIP/ /var/www/html/udr/bill/index.html
-            sed -i s/160.85.4.49/$FIP/ /usr/share/grafana/v1.9.0_rc1/config.js
+            sed -i s/160.85.4.34/$FIP/ /var/www/html/udr/bill/index.html
+            sed -i s/160.85.4.34/$FIP/ /usr/share/grafana/v1.9.0_rc1/config.js
             rm -fR /etc/rabbitmq/ssl
             rm -fR /etc/sensu/ssl
             wget http://sensuapp.org/docs/0.13/tools/ssl_certs.tar -P /tmp/udrservice
