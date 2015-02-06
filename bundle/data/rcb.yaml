@@ -22,10 +22,10 @@ parameters:
   image:
     type: string
     description: Server image id to use
-    default: 2014-12-06-cyclops-udr
+    default: CyclopsMCNv2
     constraints:
     - allowed_values:
-      - 2014-12-06-cyclops-udr
+      - CyclopsMCNv2
       description: must be a valid cyclops image id
 
   flavor:
@@ -42,7 +42,7 @@ parameters:
   sshkey:
     description: The ssh key name to use with all SM VMs
     type: string
-    default: edmo-bart
+    default: dudo
     label: SSH Key
   
   network_id:
@@ -83,6 +83,7 @@ resources:
     type: OS::Neutron::Port
     properties:
       network_id: { get_param: private_mgmt_net }
+      security_groups: [{ get_resource: rcb_si_security_group }]
 
   rcb_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -97,40 +98,36 @@ resources:
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_param: sshkey }
-      security_groups:
-      - {get_resource: rcb_si_security_group}
       networks:
         - port : { get_resource: rcb_port_mgmt }
       config_drive: "true"
-      user_data:
-        str_replace:
-          template: |
-            #!/bin/bash
-            export DEBIAN_FRONTEND=noninteractive
-            export FIP=`curl -s -X GET http://169.254.169.254/2009-04-04/meta-data/public-ipv4`
-            chmod +x /var/www/html/udr/bill/index.html
-            chmod +x /usr/share/grafana/v1.9.0_rc1/config.js
-            sed -i s/160.85.4.34/$FIP/ /var/www/html/udr/bill/index.html
-            sed -i s/160.85.4.34/$FIP/ /usr/share/grafana/v1.9.0_rc1/config.js
-            rm -fR /etc/rabbitmq/ssl
-            rm -fR /etc/sensu/ssl
-            wget http://sensuapp.org/docs/0.13/tools/ssl_certs.tar -P /tmp/udrservice
-            tar -xvf /tmp/udrservice/ssl_certs.tar -C /tmp/udrservice
-            cd /tmp/udrservice/ssl_certs && ./ssl_certs.sh generate
-            mkdir -p /etc/rabbitmq/ssl && cp /tmp/udrservice/ssl_certs/sensu_ca/cacert.pem /tmp/udrservice/ssl_certs/server/cert.pem /tmp/udrservice/ssl_certs/server/key.pem /etc/rabbitmq/ssl
-            mkdir /etc/sensu/ssl
-            cp /tmp/udrservice/ssl_certs/client/cert.pem /tmp/udrservice/ssl_certs/client/key.pem /etc/sensu/ssl
-            service rabbitmq-server restart
-            rabbitmqctl add_vhost /sensu
-            rabbitmqctl add_user sensu udrservice
-            rabbitmqctl set_permissions -p /sensu sensu ".*" ".*" ".*"
-            sudo service apache2 restart
-            service sensu-server restart
-            service sensu-client restart
-            service sensu-api restart
-            service uchiwa restart
-            rm -fR /tmp/udrservice
-
+      user_data: |
+          #!/bin/bash
+          export DEBIAN_FRONTEND=noninteractive
+          export FIP=`curl -s -X GET http://169.254.169.254/2009-04-04/meta-data/public-ipv4`
+          chmod +x /var/www/html/udr/bill/index.html
+          chmod +x /usr/share/grafana/v1.9.0_rc1/config.js
+          sed -i s/160.85.4.34/$FIP/ /var/www/html/udr/bill/index.html
+          sed -i s/160.85.4.34/$FIP/ /usr/share/grafana/v1.9.0_rc1/config.js
+          rm -fR /etc/rabbitmq/ssl
+          rm -fR /etc/sensu/ssl
+          wget http://sensuapp.org/docs/0.13/tools/ssl_certs.tar -P /tmp/udrservice
+          tar -xvf /tmp/udrservice/ssl_certs.tar -C /tmp/udrservice
+          cd /tmp/udrservice/ssl_certs && ./ssl_certs.sh generate
+          mkdir -p /etc/rabbitmq/ssl && cp /tmp/udrservice/ssl_certs/sensu_ca/cacert.pem /tmp/udrservice/ssl_certs/server/cert.pem /tmp/udrservice/ssl_certs/server/key.pem /etc/rabbitmq/ssl
+          mkdir /etc/sensu/ssl
+          cp /tmp/udrservice/ssl_certs/client/cert.pem /tmp/udrservice/ssl_certs/client/key.pem /etc/sensu/ssl
+          service rabbitmq-server restart
+          rabbitmqctl add_vhost /sensu
+          rabbitmqctl add_user sensu udrservice
+          rabbitmqctl set_permissions -p /sensu sensu ".*" ".*" ".*"
+          sudo service apache2 restart
+          service sensu-server restart
+          service sensu-client restart
+          service sensu-api restart
+          service uchiwa restart
+          rm -fR /tmp/udrservice
+      
 outputs:
   mcn.endpoint.rcb.mgt:
     description: "IP addresses of the RCB service."
