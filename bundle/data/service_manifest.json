@@ -1,0 +1,17 @@
+{
+    "service_type": "http://schemas.mobile-cloud-networking.eu/occi/sm#rcb",
+    "service_description": "Cyclops",
+    "service_attributes": {
+        "mcn.endpoint.rcb.dashboard": "immutable",
+        "mcn.endpoint.rcb.udr": "immutable"
+    },
+    "service_endpoint": "http://127.0.0.1:8888/rcb/",
+    "depends_on": [],
+    "resources": [
+        {
+            "http://schemas.mobile-cloud-networking.eu/occi/service#cc": {
+                "uri": "file:///root/my/bundle/data/itg.yaml"
+            }
+        }
+    ]
+}

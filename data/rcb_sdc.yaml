@@ -1,0 +1,84 @@
+# Copyright 2015 Zuercher Hochschule fuer Angewandte Wissenschaften
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+heat_template_version: 2013-05-23
+
+description: Deploys the RCB service instance resources.
+
+parameters:
+
+  package:
+    type: string
+    default: d831a1c0-a191-e63c-cedb-ae7c17219643
+    description: The package uuid to use
+
+  image:
+    type: string
+    default: #TODO
+    description: The image uuid to use for the kvm machine
+
+  networks:
+    type: string
+    default: c65d319c-5eb5-4b42-8edc-104f73d80002
+    description: The network uuid to use
+
+resources:
+  rcb_si:
+    type: SDC::Compute::KVM
+    properties:
+      instance_alias: rcb_si
+      package: { get_param: package }
+      image: { get_param: image }
+      networks: { get_param: networks }
+      user_script:|
+          #!/bin/bash
+          rm -fR /etc/rabbitmq/ssl
+          rm -fR /etc/sensu/ssl
+          echo "---------------------------------------------------------------------------"
+          echo "| Installing SSL certificates"
+          echo "---------------------------------------------------------------------------"
+          wget http://sensuapp.org/docs/0.13/tools/ssl_certs.tar -P /tmp/udrservice
+          tar -xvf /tmp/udrservice/ssl_certs.tar -C /tmp/udrservice
+          cd /tmp/udrservice/ssl_certs && ./ssl_certs.sh generate
+          mkdir -p /etc/rabbitmq/ssl && cp /tmp/udrservice/ssl_certs/sensu_ca/cacert.pem /tmp/udrservice/ssl_certs/server/cert.pem /tmp/udrservice/ssl_certs/server/key.pem /etc/rabbitmq/ssl
+          mkdir /etc/sensu/ssl
+          cp /tmp/udrservice/ssl_certs/client/cert.pem /tmp/udrservice/ssl_certs/client/key.pem /etc/sensu/ssl
+          service rabbitmq-server restart
+          rabbitmqctl add_vhost /sensu
+          rabbitmqctl add_user sensu udrservice
+          rabbitmqctl set_permissions -p /sensu sensu ".*" ".*" ".*"
+          service sensu-server restart
+          service sensu-client restart
+          service sensu-api restart
+          service uchiwa restart
+          echo -e "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts
+          service tomcat7 restart
+          rm -fR /tmp/udrservice
+
+
+outputs:
+  mcn.endpoint.rcb.dashboard:
+    description: "IP addresses of the RCB service."
+    value:
+      str_replace:
+        template: http://host:8080/dashboard/app
+        params:
+          host: { get_attr: [ rcb_si, network_ip ] }
+  mcn.endpoint.rcb.udr:
+    description: "REST endpoint of the UDR microservice."
+    value:
+      str_replace:
+        template: http://host:8080/udr/ext/app
+        params:
+          host: { get_attr: [ rcb_si, network_ip ] }

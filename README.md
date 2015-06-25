@@ -1,99 +1,73 @@
-# MCN Service Manger
+# Testing SO without deploying it using CC
 
-This is the MCN Service Manager.
+Goto the directory of mcn_cc_sdk & setup virtenv (Note: could be done easier):
 
-You can run this example by `python ./d-rcb-sm/rcb-sm.py  -c ./etc/sm.cfg`
+    $ virtualenv /tmp/mcn_test_virt
+    $ source /tmp/mcn_test_virt/bin/activate
 
-## Authentication
-Authentication and access to the SM is mediated by OpenStack keystone. In order to make a service instantiation request
-against a SM the end user needs to supply:
+Install SDK and required packages:
 
- * tenant name: this should be provided through the `X-Auth-Token` HTTP header
- * token: this should be provided through the `X-Tenant-Name` HTTP header. If no `X-Tenant-Name` is supplied the 
- default of `admin` will be used (See [here](https://git.mobile-cloud-networking.eu/cloudcontroller/mcn_cc_sdk/blob/master/sdk/services.py#L86) for why).
+    $ pip install pbr six iso8601 babel requests python-heatclient==0.2.9 python-keystoneclient
+    $ python setup.py install  # in the mcn_cc_sdk directory.
 
-### Generating a Keystone Token
-**IMPORTANT:** you're user must be assigned `admin` permissions for the project they're part of.
+Run SO:
 
-For this to work you will need the keystone command line tools installed (`pip install python-keystoneclient`) 
-and also your OpenStack credentials.
+    $ export OPENSHIFT_PYTHON_DIR=/tmp/mcn_test_virt
+    $ export OPENSHIFT_REPO_DIR=<path to sample so>
+    $ python ./wsgi/application
 
-To create a keystone token issue the following commands:
+Optionally you can also set the DESIGN_URI if your OpenStack install is not local.
+
+In a new terminal do get a token from keystone (token must belong to a user which has the admin role for the tenant):
 
     $ keystone token-get
+    $ export KID='...'
+    $ export TENANT='...'
 
-## Configuration
+You can now visit the SO interface [here](http://localhost:8051/orchestrator/default).
 
-All configuration of the service manager is carried out through `etc/sm.cfg`. There are three sections to this
-configuration file.
+## Sample requests
 
- * `general` - this configuration is used by the code under the namespace of mcn.sm.
- * `service_manager` - this is configuration related to the service manager that you implement
- * `service_manager_admin` - this section is related to the registration of the service with keystone
- * `cloud_controller` - configuration related to the cloudcontroller
+Initialize the SO:
 
-Please see the configuration file `etc/sm.cfg` for further parameter descriptions.
-This service manager framework assumes that the bundle supplied will be deployed using git.
+    $ curl -v -X PUT http://localhost:8051/orchestrator/default \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: orchestrator; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
 
-### Service Provider Internal Parameters
-If the service provider needs to pass parameters to various stages of the instantiation process, this can be done by
-adding those parameters to a JSON file. There is an example of this in `etc/service_params.json`
+Get state of the SO + service instance:
 
-### Configuration of demo SO bundle
+    $ curl -v -X GET http://localhost:8051/orchestrator/default \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
 
-The demo SO bundle comes from: https://git.mobile-cloud-networking.eu/cloudcontroller/mcn_sample_so It is added as a 
-submodule and can be retreived using the above instructions.
+Trigger deployment of the service instance:
 
-There are some support files that the SM and the CC rely upon. These support files must be stored under the root of
-your SO bundle in a folder named `support`.
+    $ curl -v -X POST http://localhost:8051/orchestrator/default?action=deploy \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: deploy; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
 
-If you wish to run the example you will possibly have to update one of them.
+Trigger provisioning of the service instance:
 
-The `support/pre_start_python` file contains a variable that points to the AAA service. For this demo, the URI value of
-`DESIGN_URI` should be set to your OpenStack keystone API e.g. `http://$KEYSTONE_HOST:5000/v2.0`.
+    $ curl -v -X POST http://localhost:8051/orchestrator/default?action=provision \
+          -H 'Content-Type: text/occi' \
+          -H 'Category: provision; scheme="http://schemas.mobile-cloud-networking.eu/occi/service#"' \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
 
-There is no further configuration needed for the bundle.
+Trigger update on SO + service instance:
 
-### Cavaets
+    $ curl -v -X POST http://localhost:8051/orchestrator/default \
+          -H 'Content-Type: text/occi' \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT \
+          -H 'X-OCCI-Attribute: occi.epc.attr_1="foo"'
 
- * Make sure that for the user running the SM process that the following line appears in `~/.ssh/config`
+Trigger delete of SO + service instance:
 
-        StrictHostKeyChecking no
-
-## Usage
-
-To see what services are available by the service provider you need to query the service registry.
-
-    $ curl -v -X GET http://localhost:8888/-/
-
-To create an instance of a service offered by the service provider (e.g. using the EPC demo service manager).
-
-    $ curl -v -X POST http://localhost:8888/epc/ -H 'Category: epc; scheme="http://schemas.mobile-cloud-networking.eu/occi/sm#"; class="kind";' -H 'content-type: text/occi' -H 'x-tenant-name: YOUR_TENANT_NAME' -H 'x-auth-token: YOUR_KEYSTONE_TOKEN'
-
-This request, if successful, will return a service instance ID that can be used to request further details about the
-service instance.
-
-    $ curl -v -X GET http://localhost:8888/epc/59eb41f9-8cbc-4bbd-bb16-4101703d0e13 -H 'x-tenant-name: YOUR_TENANT_NAME' -H 'x-auth-token: YOUR_KEYSTONE_TOKEN'
-
-To dispose of the instance you can issue the following request.
-
-    $ curl -v -X DELETE http://localhost:8888/epc/59eb41f9-8cbc-4bbd-bb16-4101703d0e13 -H 'x-tenant-name: YOUR_TENANT_NAME' -H 'x-auth-token: YOUR_KEYSTONE_TOKEN'
-
-### Authentication
-To authentication you need to supply a tenant name and token. Do this by setting the following HTTP headers in your 
-request
-
- * X-Tenant-Name
- * X-Auth-Token
-
-## Dependency notes
-
-1. You must have the MCN SDK installed on the machine where you run your service manager. To do so:
-
-        $ git clone git@git.mobile-cloud-networking.eu:cloudcontroller/mcn_cc_sdk.git
-        $ cd mcn_cc_sdk
-        $ python ./setup.py install
-
-## Questions?
-
-Give edmo@zhaw.ch a mail
+    $ curl -v -X DELETE http://localhost:8051/orchestrator/default \
+          -H 'X-Auth-Token: '$KID \
+          -H 'X-Tenant-Name: '$TENANT
