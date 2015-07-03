@@ -107,7 +107,8 @@ class SOE(service_orchestrator.Execution):
 
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
-
+            if 'output' not in tmp:
+                return tmp['state'], self.stack_id, dict()
             return tmp['state'], self.stack_id, tmp['output']
         else:
             return 'Unknown', 'N/A'
