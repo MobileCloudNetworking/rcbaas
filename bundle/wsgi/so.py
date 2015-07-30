@@ -36,8 +36,9 @@ class SOE(service_orchestrator.Execution):
         self.token = token
         self.tenant = tenant
         self.event = ready_event
-        f = open(os.path.join(HERE, 'data', 'rcb.yaml'))
+        # f = open(os.path.join(HERE, 'data', 'rcb.yaml'))
         # f = open(os.path.join(HERE, 'data', 'rcb_sdc.yaml'))
+        f = open(os.path.join(HERE, 'data', 'rcb_cs.json'))
         self.template = f.read()
         f.close()
         self.stack_id = None

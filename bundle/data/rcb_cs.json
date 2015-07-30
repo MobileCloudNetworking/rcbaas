@@ -1,0 +1,80 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "CloudSigma test",
+    "Parameters": 
+    {
+        "UserName": 
+        {
+            "Description": "CloudSigma username",
+            "Type": "String",
+            "Default": "pata@zhaw.ch"
+        },
+
+        "Password": 
+        {
+            "Description": "CloudSigma password",
+            "Type": "String",
+            "Default": "welcome2@icclab"
+        },
+
+        "CloneUUID": 
+        {
+            "Description": "Drive UUID to clone.",
+            "Type": "String", 
+            "Default": "5f071485-d492-4526-952f-288b948d4db2"
+        }
+
+    },
+
+    "Resources": 
+    {
+        "RCB": 
+        {
+            "Type": "CloudSigma::Compute::Instance",
+            "Properties": 
+            {
+                "username": 
+                {
+                    "Ref": "UserName"
+                },
+
+                "password": 
+                {
+                    "Ref": "Password"
+                },
+
+                "description": "Created by HEAT",
+
+                "drive_clone_uuid": 
+                {
+                    "Ref": "CloneUUID"
+                },
+
+                "net_ip_uuids": 
+                [
+                    "dhcp"
+                ],
+                "mem_size": 4096,
+                "cpu_mhz": 4000,
+                "cloudinit_user_data":"#!/bin/bash\nrm -fR /etc/rabbitmq/ssl\nrm -fR /etc/sensu/ssl\necho \"---------------------------------------------------------------------------\"\necho \"| Installing SSL certificates\"\necho \"---------------------------------------------------------------------------\"\nwget http://sensuapp.org/docs/0.19/tools/ssl_certs.tar -P /tmp/udrservice\ntar -xvf /tmp/udrservice/ssl_certs.tar -C /tmp/udrservice\ncd /tmp/udrservice/ssl_certs && ./ssl_certs.sh generate\nmkdir -p /etc/rabbitmq/ssl && cp /tmp/udrservice/ssl_certs/sensu_ca/cacert.pem /tmp/udrservice/ssl_certs/server/cert.pem /tmp/udrservice/ssl_certs/server/key.pem /etc/rabbitmq/ssl\nmkdir /etc/sensu/ssl\ncp /tmp/udrservice/ssl_certs/client/cert.pem /tmp/udrservice/ssl_certs/client/key.pem /etc/sensu/ssl\nservice rabbitmq-server restart\nrabbitmqctl add_vhost /sensu\nrabbitmqctl add_user sensu udrservice\nrabbitmqctl set_permissions -p /sensu sensu \".*\" \".*\" \".*\"\nservice sensu-server stop\nservice sensu-client stop\nservice sensu-api stop\nservice uchiwa stop\nservice sensu-server start\nservice sensu-client start\nservice sensu-api start\nservice uchiwa start\necho -e \"127.0.0.1 $(hostname)\" | sudo tee -a /etc/hosts\nservice tomcat7 restart\ncurl -X GET 'http://localhost:8080/udr/api'\nrm -fR /tmp/udrservice"
+            }
+        }
+    },
+
+    "Outputs": 
+    {
+        "Server IP": 
+        {
+            "Value": 
+            {
+                "Fn::GetAtt": 
+                [
+                    "RCB",
+                    "network_ip"
+                ]
+            },
+
+            "Description": "The IP of the server"
+        }
+    }
+}
