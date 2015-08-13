@@ -6,15 +6,13 @@
         "UserName": 
         {
             "Description": "CloudSigma username",
-            "Type": "String",
-            "Default": "pata@zhaw.ch"
+            "Type": "String"
         },
 
         "Password": 
         {
             "Description": "CloudSigma password",
-            "Type": "String",
-            "Default": "welcome2@icclab"
+            "Type": "String"
         },
 
         "CloneUUID": 
@@ -60,21 +58,47 @@
             }
         }
     },
-
     "Outputs": 
     {
-        "Server IP": 
+        "mcn.endpoint.rcb.dashboard":
         {
-            "Value": 
-            {
-                "Fn::GetAtt": 
-                [
-                    "RCB",
-                    "network_ip"
-                ]
+            "Value":
+            { "Fn::Join":[
+              "",
+              ["http://", {
+              "Fn::Select": [
+               0,
+               {
+                "Fn::GetAtt":
+                 [
+                  "RCB",
+                  "network_ip"
+                 ]
+               }
+              ]
+              }, ":8080/dashboard/app"]]
             },
-
-            "Description": "The IP of the server"
+            "Description": "IP addresses of the RCB service."
+        },
+       "mcn.endpoint.rcb.udr":
+        {
+            "Value":
+            { "Fn::Join":[
+              "",
+              ["http://", {
+              "Fn::Select": [
+               0,
+               {
+                "Fn::GetAtt":
+                 [
+                  "RCB",
+                  "network_ip"
+                 ]
+               }
+              ]
+              }, ":8080/udr/ext/app"]]
+            },
+            "Description": "REST endpoint of the UDR microservice."
         }
     }
 }

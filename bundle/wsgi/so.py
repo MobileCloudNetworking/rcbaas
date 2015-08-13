@@ -26,7 +26,6 @@ from sm.so.service_orchestrator import LOG
 
 HERE = os.environ['OPENSHIFT_REPO_DIR']
 
-
 class SOE(service_orchestrator.Execution):
     """
     Sample SO execution part.
@@ -48,7 +47,8 @@ class SOE(service_orchestrator.Execution):
         #                                   region='WinterthurSDC')
         self.deployer = util.get_deployer(self.token,
                                           url_type='public',
-                                          tenant_name=self.tenant)
+                                          tenant_name=self.tenant,
+                                          region='ZurichCloudSigma')
 
     def design(self):
         """
@@ -63,7 +63,8 @@ class SOE(service_orchestrator.Execution):
         """
         LOG.debug('Executing deployment logic')
         if self.stack_id is None:
-            self.stack_id = self.deployer.deploy(self.template, self.token)
+            self.stack_id = self.deployer.deploy(self.template, self.token, parameters={'UserName': 'pata@zhaw.ch',
+                                                                                        'Password': 'welcome2@icclab'})
             LOG.info('Resource dependencies - stack id: ' + self.stack_id)
 
     def provision(self):
