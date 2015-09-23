@@ -26,6 +26,7 @@ from sm.so.service_orchestrator import LOG
 
 HERE = os.environ['OPENSHIFT_REPO_DIR']
 
+
 class SOE(service_orchestrator.Execution):
     """
     Sample SO execution part.
@@ -35,16 +36,10 @@ class SOE(service_orchestrator.Execution):
         self.token = token
         self.tenant = tenant
         self.event = ready_event
-        # f = open(os.path.join(HERE, 'data', 'rcb.yaml'))
-        # f = open(os.path.join(HERE, 'data', 'rcb_sdc.yaml'))
         f = open(os.path.join(HERE, 'data', 'rcb_cs.json'))
         self.template = f.read()
         f.close()
         self.stack_id = None
-        # self.deployer = util.get_deployer(self.token,
-        #                                   url_type='public',
-        #                                   tenant_name=self.tenant,
-        #                                   region='WinterthurSDC')
         self.deployer = util.get_deployer(self.token,
                                           url_type='public',
                                           tenant_name=self.tenant,
@@ -125,6 +120,7 @@ class SOE(service_orchestrator.Execution):
         # TODO here you can add logic to handle a notification event sent by the CC
         # XXX this is optional
 
+
 class SOD(service_orchestrator.Decision, threading.Thread):
     """
     Sample Decision part of SO.
@@ -152,6 +148,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
 
     def stop(self):
         pass
+
 
 class ServiceOrchestrator(object):
     """

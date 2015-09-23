@@ -18,12 +18,11 @@ Setuptools script.
 
 from setuptools import setup
 
-setup(name='sample_so',
-      version='0.2',
-      description='Sample SO',
-      author='Intel Performance Learning Solutions Ltd, Intel Corporation.',
-      author_email='thijs.metsch@intel.com',
-      url='http://www.intel.com',
-      license='Apache 2.0',
-      packages=['wsgi', 'mcn_cc_sdk'],
+setup(name='rcb_so',
+      version='0.3',
+      description='RCB SO',
+      author='ZHAW',
+      author_email='edmo@zhaw.ch',
+      url='http://blog.zhaw.ch/icclab/',
+      license='Apache 2.0'
 )
