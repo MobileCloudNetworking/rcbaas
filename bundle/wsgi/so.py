@@ -23,8 +23,7 @@ import threading
 from sdk.mcn import util
 from sm.so import service_orchestrator
 from sm.so.service_orchestrator import LOG
-
-HERE = os.environ['OPENSHIFT_REPO_DIR']
+from sm.so.service_orchestrator import BUNDLE_DIR
 
 
 class SOE(service_orchestrator.Execution):
@@ -36,7 +35,7 @@ class SOE(service_orchestrator.Execution):
         self.token = token
         self.tenant = tenant
         self.event = ready_event
-        f = open(os.path.join(HERE, 'data', 'rcb_cs.json'))
+        f = open(os.path.join(BUNDLE_DIR, 'data', 'rcb_cs.json'))
         self.template = f.read()
         f.close()
         self.stack_id = None
