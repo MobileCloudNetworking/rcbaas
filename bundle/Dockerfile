@@ -1,1 +1,1 @@
-FROM dizz/hurtle-base:latest
+FROM mobilecloudnetworking/hurtle-base:latest
