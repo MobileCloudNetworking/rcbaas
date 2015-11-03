@@ -161,22 +161,3 @@ class ServiceOrchestrator(object):
         self.so_d = SOD(so_e=self.so_e, tenant=tenant, token=token, ready_event=self.event)
         LOG.debug('Starting SOD thread...')
         self.so_d.start()
-
-
-# basic test
-if __name__ == '__main__':
-
-    token = 'e383301a2ae5492ba168a9e50968eecd'
-    tenant = 'edmo'
-
-    soe = SOE(token, tenant)
-    soe.design()
-    soe.deploy()
-    soe.provision()
-
-    # LOG.info('instantiated service dependencies: ' + res.service_inst_endpoints.__repr__())
-    # # LOG.info('instantiated resource dependencies (heat stack id): ' + res.stack_id)
-    # stack_output = res.state()
-    # LOG.info('stack output: ' + stack_output.__repr__())
-
-    soe.dispose()

@@ -1,144 +1,73 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "RCB resources",
-    "Parameters": 
-    {
-        "UserName": 
-        {
-            "Description": "CloudSigma username",
-            "Type": "String"
-        },
-
-        "Password": 
-        {
-            "Description": "CloudSigma password",
-            "Type": "String"
-        },
-
-        "CloneUUID": 
-        {
-            "Description": "Drive UUID to clone.",
-            "Type": "String", 
-            "Default": "6f62bb9b-79e7-43c8-b66c-da8bd777f501"
-        }
-
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "RCB resources",
+  "Parameters": {
+    "UserName": {
+      "Description": "CloudSigma username",
+      "Type": "String"
     },
-
-    "Resources": 
-    {
-        "RCB": 
-        {
-            "Type": "CloudSigma::Compute::Instance",
-            "Properties": 
-            {
-                "username": 
-                {
-                    "Ref": "UserName"
-                },
-
-                "password": 
-                {
-                    "Ref": "Password"
-                },
-
-                "description": "Created by HEAT",
-
-                "drive_clone_uuid": 
-                {
-                    "Ref": "CloneUUID"
-                },
-
-                "net_ip_uuids": 
-                [
-                    "dhcp"
-                ],
-                "mem_size": 4096,
-                "cpu_mhz": 4000,
-                "cloudinit_user_data": "#!/bin/bash\nrabbitmq-plugins enable rabbitmq_management && service rabbitmq-server restart"
-            }
-        }
+    "Password": {
+      "Description": "CloudSigma password",
+      "Type": "String"
     },
-    "Outputs": 
-    {
-        "mcn.endpoint.rcb.dashboard":
-        {
-            "Value":
-            { "Fn::Join":[
-              "",
-              ["http://", {
-              "Fn::Select": [
-               0,
-               {
-                "Fn::GetAtt":
-                 [
-                  "RCB",
-                  "network_ip"
-                 ]
-               }
-              ]
-              }, ":8080/dashboard/app"]]
-            },
-            "Description": "Dashboard of the RCB service."
-        },
-       "mcn.endpoint.rcb.udr":
-        {
-            "Value":
-            { "Fn::Join":[
-              "",
-              ["http://", {
-              "Fn::Select": [
-               0,
-               {
-                "Fn::GetAtt":
-                 [
-                  "RCB",
-                  "network_ip"
-                 ]
-               }
-              ]
-              }, ":8080/udr/ext/app"]]
-            },
-            "Description": "REST endpoint of the UDR microservice."
-        },
-      "mcn.endpoint.rcb.mq":
-        {
-            "Value":
-            { "Fn::Join":[
-              "",
-              ["amqp://", {
-              "Fn::Select": [
-               0,
-               {
-                "Fn::GetAtt":
-                 [
-                  "RCB",
-                  "network_ip"
-                 ]
-               }
-              ]
-              }]]
-            },
-            "Description": "RCB's RabbitMQ AMQP endpoint for integration."
-        },
-      "mcn.endpoint.rcb.mq.mgt":
-        {
-            "Value":
-            { "Fn::Join":[
-              "",
-              ["http://", {
-              "Fn::Select": [
-               0,
-               {
-                "Fn::GetAtt":
-                 [
-                  "RCB",
-                  "network_ip"
-                 ]
-               }
-              ]
-              }], ":15672"]
-            },
-            "Description": "RabbitMQ Management Interface."
-        }
+    "CloneUUID": {
+      "Description": "Drive UUID to clone.",
+      "Type": "String",
+      "Default": "6f62bb9b-79e7-43c8-b66c-da8bd777f501"
     }
+  },
+  "Resources": {
+
+    "RCB": {
+      "Type": "CloudSigma::Compute::Instance",
+      "Properties": {
+        "username": {
+          "Ref": "UserName"
+        },
+        "password":{
+          "Ref": "Password"
+        },
+        "description": "Created by HEAT",
+        "drive_clone_uuid": {
+          "Ref": "CloneUUID"
+        },
+        "net_ip_uuids": [
+          "dhcp"
+        ],
+        "mem_size": 4096,
+        "cpu_mhz": 4000,
+        "cloudinit_user_data": "#!/bin/bash\nrabbitmq-plugins enable rabbitmq_management && service rabbitmq-server restart"
+      }
+    }
+  },
+  "Outputs": {
+
+    "mcn.endpoint.rcb.dashboard": {
+      "Value": {
+        "Fn::Join": ["", ["http://", {"Fn::Select": [0, {"Fn::GetAtt": ["RCB", "network_ip"]}]}, ":8080/dashboard/app"]]
+      },
+      "Description": "Dashboard of the RCB service."
+    },
+
+    "mcn.endpoint.rcb.udr": {
+      "Value": {
+        "Fn::Join": ["", ["http://", {"Fn::Select": [0, {"Fn::GetAtt": ["RCB", "network_ip"]}]}, ":8080/udr/ext/app"]]
+      },
+      "Description": "REST endpoint of the UDR microservice."
+    },
+
+    "mcn.endpoint.rcb.mq": {
+      "Value": {
+        "Fn::Join": ["", ["amqp://", {"Fn::Select": [0, {"Fn::GetAtt": ["RCB", "network_ip"]}]}, ""]]
+      },
+      "Description": "RCB's RabbitMQ AMQP endpoint for integration."
+    },
+
+    "mcn.endpoint.rcb.mq.mgt": {
+      "Value": {
+        "Fn::Join": ["", ["http://", {"Fn::Select": [0, {"Fn::GetAtt": ["RCB", "network_ip"]}]}, ":15672"]]
+      },
+      "Description": "RabbitMQ Management Interface."
+    }
+  }
 }
