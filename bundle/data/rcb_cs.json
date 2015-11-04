@@ -13,7 +13,7 @@
     "CloneUUID": {
       "Description": "Drive UUID to clone.",
       "Type": "String",
-      "Default": "32332ec2-e63e-418a-83d4-bebbc5f2a82b"
+      "Default": "821cbb91-d77e-4384-a5ee-99d564e58a68"
     }
   },
   "Resources": {
