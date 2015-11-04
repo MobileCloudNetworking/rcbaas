@@ -233,7 +233,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
 
                 rcb_message['service_type'] = stop_message.get('sm_name', 'none')
                 rcb_message['instance_id'] = stop_message.get('so_id', 'none')
-                rcb_message['tenant_id'] = stop_message.get('tenant_id', 'none')
+                rcb_message['tenant_id'] = stop_message.get('tenant', 'mcntub')
                 rcb_message['status'] = 'stop'
 
                 LOG.info('Sending stop billing event to RCB: ' + rcb_message.__repr__())
@@ -254,7 +254,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
 
                 rcb_message['service_type'] = start_message.get('sm_name', 'none')
                 rcb_message['instance_id'] = start_message.get('so_id', 'none')
-                rcb_message['tenant_id'] = start_message.get('tenant_id', 'none')
+                rcb_message['tenant_id'] = start_message.get('tenant', 'mcntub')
                 rcb_message['status'] = 'start'
 
                 LOG.debug('Sending start billing event to RCB: ' + rcb_message.__repr__())
