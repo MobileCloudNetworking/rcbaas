@@ -17,9 +17,12 @@
 Sample SO.
 """
 
+import json
 import os
 import threading
 
+from bonfire.graylog_api import GraylogAPI, SearchQuery, SearchRange
+import puka
 from sdk.mcn import util
 from sm.so import service_orchestrator
 from sm.so.service_orchestrator import LOG
@@ -30,11 +33,12 @@ class SOE(service_orchestrator.Execution):
     """
     Sample SO execution part.
     """
-    def __init__(self, token, tenant, ready_event):
+    def __init__(self, token, tenant, ready_event, destroy_event):
         super(SOE, self).__init__(token, tenant)
         self.token = token
         self.tenant = tenant
         self.event = ready_event
+        self.destroy_event = destroy_event
         f = open(os.path.join(BUNDLE_DIR, 'data', 'rcb_cs.json'))
         self.template = f.read()
         f.close()
@@ -49,7 +53,7 @@ class SOE(service_orchestrator.Execution):
         Do initial design steps here.
         """
         LOG.debug('Executing design logic')
-        self.resolver.design()
+        # self.resolver.design()
 
     def deploy(self):
         """
@@ -65,30 +69,9 @@ class SOE(service_orchestrator.Execution):
         """
         (Optional) if not done during deployment - provision.
         """
-
-        self.resolver.provision()
-        LOG.info('Now I can provision my resources once my resources are created. Service info:')
-        LOG.info(self.resolver.service_inst_endpoints)
-
-        # TODO add you provision phase logic here
-        # XXX note that provisioning of external services must happen before resource provisioning
-
         LOG.debug('Executing resource provisioning logic')
         # once logic executes, deploy phase is done
         self.event.set()
-
-    def dispose(self):
-        """
-        Dispose SICs.
-        """
-        LOG.info('Disposing of 3rd party service instances...')
-        self.resolver.dispose()
-
-        if self.stack_id is not None:
-            LOG.info('Disposing of resource instances...')
-            self.deployer.dispose(self.stack_id, self.token)
-            self.stack_id = None
-        # TODO on disposal, the SOE should notify the SOD to shutdown its thread
 
     def state(self):
         """
@@ -97,9 +80,9 @@ class SOE(service_orchestrator.Execution):
 
         # TODO ideally here you compose what attributes should be returned to the SM
         # In this case only the state attributes are returned.
-        resolver_state = self.resolver.state()
-        LOG.info('Resolver state:')
-        LOG.info(resolver_state.__repr__())
+        # resolver_state = self.resolver.state()
+        # LOG.info('Resolver state:')
+        # LOG.info(resolver_state.__repr__())
 
         if self.stack_id is not None:
             tmp = self.deployer.details(self.stack_id, self.token)
@@ -107,7 +90,7 @@ class SOE(service_orchestrator.Execution):
                 return tmp['state'], self.stack_id, dict()
             return tmp['state'], self.stack_id, tmp['output']
         else:
-            return 'Unknown', 'N/A'
+            return 'Unknown', 'N/A', {}
 
     def update(self, old, new, extras):
         # TODO implement your own update logic - this could be a heat template update call - not to be confused
@@ -119,31 +102,167 @@ class SOE(service_orchestrator.Execution):
         # TODO here you can add logic to handle a notification event sent by the CC
         # XXX this is optional
 
+    def dispose(self):
+        """
+        Dispose SICs.
+        """
+        LOG.info('Disposing of 3rd party service instances...')
+        # self.resolver.dispose()
+
+        if self.stack_id is not None:
+            LOG.info('Disposing of resource instances...')
+            self.deployer.dispose(self.stack_id, self.token)
+            self.stack_id = None
+        # TODO on disposal, the SOE should notify the SOD to shutdown its thread
+        self.destroy_event.set()
+
 
 class SOD(service_orchestrator.Decision, threading.Thread):
     """
     Sample Decision part of SO.
     """
 
-    def __init__(self, so_e, token, tenant, ready_event):
+    def __init__(self, so_e, token, tenant, ready_event, destroy_event):
         super(SOD, self).__init__(so_e, token, tenant)
         threading.Thread.__init__(self)
         self.so_e = so_e
         self.token = token
         self.tenant = tenant
         self.event = ready_event
+        self.destroy_event = destroy_event
+        # we take events from a day ago. this will not result in duplicated
+        # XXX optimisation possible here
+        self.sr = SearchRange(from_time="1 day ago midnight", to_time='now')
+        # TODO these params can be externalised
+        self.logserver_url = 'log.cloudcomplab.ch'
+        self.logserver_port = 12900
+        self.logserver_user = 'admin'
+        self.logserver_pass = 'admin'
+        self.run_me = True
+        self.sleepy = 30
 
     def run(self):
         """
         Decision part implementation goes here.
+        TODO this should run until the destroy method is called
+             If this holds then access to the AMQP server can be done via state()
+
+        require the logging service
+          hardcode to log.cloudcomplab.ch
+        here we poll the logging server for events
+        query for all services that are provision events since the start of this SO
+        query for all services that are destroy events since the start of this SO
+        construct messages to send to AMQP service
+        start bill event:
+        {
+          "service_type": "dnsaas",
+          "instance_id": "sodnsa97979879879",
+          "tenant_id": "mcntub"
+          "status": "start"
+        }
+
+        stop bill event:
+        {
+          "service_type": "dnsaas",
+          "instance_id": "sodnsa97979879879",
+          "tenant_id": "mcntub"
+          "status": "start"
+        }
         """
-        # it is unlikely that logic executed will be of any use until the provisioning phase has completed
 
         LOG.debug('Waiting for deploy and provisioning to finish')
         self.event.wait()
         LOG.debug('Starting runtime logic...')
-        # TODO implement you runtime logic here - you should probably release the locks afterwards, maybe in stop ;-)
-        # XXX note you could use the runtime functionality of the CC - just a hint ;-)
+
+        _, _, stack_output = self.so_e.state()
+        attributes = {}
+        for kv in stack_output:
+                attributes[kv['output_key']] = kv['output_value']
+
+        amqp_url = "amqp://code:pass1234@messaging.demonstrator.info"
+        if 'mcn.endpoint.rcb.mq' in attributes:
+            # TODO return the username and password in the heat response
+            amqp_url = 'amqp://guest:guest@' + attributes['mcn.endpoint.rcb.mq']
+
+        client, log_server = self.setup_connections(amqp_url)
+
+        while not self.destroy_event.is_set():
+            # TODO separate threads
+            LOG.debug('Executing billing run...')
+            self.bill_start_events(client, log_server)
+            self.bill_stop_events(client, log_server)
+            self.destroy_event.wait(self.sleepy)
+
+        LOG.debug('Runtime logic ending...')
+        client.close()
+
+    def setup_connections(self, amqp_url):
+        LOG.debug('Setting up graylog API...')
+        log_server = GraylogAPI(self.logserver_url, self.logserver_port, self.logserver_user, self.logserver_pass)
+        client = puka.Client(amqp_url)
+        try:
+            LOG.debug('AMQP connection to: ' + amqp_url)
+            promise = client.connect()
+            client.wait(promise)
+
+            LOG.debug('AMQP exchange declaration: mcn')
+            promise = client.exchange_declare(exchange='mcn', type='topic', durable=True)
+            client.wait(promise)
+
+            LOG.debug('AMQP queue declaration: mcnevents')
+            promise = client.queue_declare('mcnevents', durable=True)
+            client.wait(promise)
+
+            LOG.debug('AMQP queue/exchange binding: mcnevents->mcn Routing key: events')
+            promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
+            client.wait(promise)
+        except Exception as e:
+            LOG.error('Cannot connect to the RCB message bus.')
+            raise e
+        return client, log_server
+
+    def bill_stop_events(self, client, log_server):
+        stop_billing_query = SearchQuery(search_range=self.sr, query='phase_event:done AND so_phase:destroy')
+        try:
+            stop_results = log_server.search(stop_billing_query)
+            LOG.debug('Number of stop billing events found: ' + str(len(stop_results.messages)))
+
+            for stop_event in stop_results.messages:
+                rcb_message = {}
+                stop_message = json.loads(stop_event.message)
+
+                rcb_message['service_type'] = stop_message.get('sm_name', 'none')
+                rcb_message['instance_id'] = stop_message.get('so_id', 'none')
+                rcb_message['tenant_id'] = stop_message.get('tenant_id', 'none')
+                rcb_message['status'] = 'stop'
+
+                LOG.info('Sending stop billing event to RCB: ' + rcb_message.__repr__())
+                promise = client.basic_publish(exchange='mcn', routing_key='events', body=json.dumps(rcb_message))
+                client.wait(promise)
+        except Exception as e:
+            LOG.error('Cannot issue query to the log service to extract stop events.')
+            raise e
+
+    def bill_start_events(self, client, log_server):
+        start_billing_query = SearchQuery(search_range=self.sr, query='phase_event:done AND so_phase:provision')
+        try:
+            start_results = log_server.search(start_billing_query)
+            LOG.debug('Number of start billing events found: ' + str(len(start_results.messages)))
+            for start_event in start_results.messages:
+                rcb_message = {}
+                start_message = json.loads(start_event.message)
+
+                rcb_message['service_type'] = start_message.get('sm_name', 'none')
+                rcb_message['instance_id'] = start_message.get('so_id', 'none')
+                rcb_message['tenant_id'] = start_message.get('tenant_id', 'none')
+                rcb_message['status'] = 'start'
+
+                LOG.debug('Sending start billing event to RCB: ' + rcb_message.__repr__())
+                promise = client.basic_publish(exchange='mcn', routing_key='events', body=json.dumps(rcb_message))
+                client.wait(promise)
+        except Exception as e:
+            LOG.error('Cannot issue query to the log service to extract start events.')
+            raise e
 
     def stop(self):
         pass
@@ -155,9 +274,13 @@ class ServiceOrchestrator(object):
     """
 
     def __init__(self, token, tenant):
-        # this python thread event is used to notify the SOD that the runtime phase can execute its logic
-        self.event = threading.Event()
-        self.so_e = SOE(token=token, tenant=tenant, ready_event=self.event)
-        self.so_d = SOD(so_e=self.so_e, tenant=tenant, token=token, ready_event=self.event)
+        # when provisioning is complete then only the run functionality can execute
+        self.provision_event = threading.Event()
+        # when soe.destroy is called this signals to stop the billing cycle
+        self.destroy_event = threading.Event()
+        self.so_e = SOE(token=token, tenant=tenant,
+                        ready_event=self.provision_event, destroy_event=self.destroy_event)
+        self.so_d = SOD(so_e=self.so_e, tenant=tenant, token=token,
+                        ready_event=self.provision_event, destroy_event=self.destroy_event)
         LOG.debug('Starting SOD thread...')
         self.so_d.start()
