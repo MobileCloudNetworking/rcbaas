@@ -19,7 +19,7 @@ Setuptools script.
 from setuptools import setup
 
 setup(name='rcb_so',
-      version='0.3',
+      version='0.4',
       description='RCB SO',
       author='ZHAW',
       author_email='edmo@zhaw.ch',

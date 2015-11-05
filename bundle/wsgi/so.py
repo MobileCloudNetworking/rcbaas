@@ -143,10 +143,8 @@ class SOD(service_orchestrator.Decision, threading.Thread):
 
     def run(self):
         """
+        This logic does not need to run with the RCB SO and can be ran elsewhere
         Decision part implementation goes here.
-        TODO this should run until the destroy method is called
-             If this holds then access to the AMQP server can be done via state()
-
         require the logging service
           hardcode to log.cloudcomplab.ch
         here we poll the logging server for events
@@ -182,6 +180,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         amqp_url = "amqp://code:pass1234@messaging.demonstrator.info"
         if 'mcn.endpoint.rcb.mq' in attributes:
             # TODO return the username and password in the heat response
+            # XXX username and password is hardcoded!
             amqp_url = 'amqp://guest:guest@' + attributes['mcn.endpoint.rcb.mq']
 
         client, log_server = self.setup_connections(amqp_url)
@@ -217,7 +216,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
             promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
             client.wait(promise)
         except Exception as e:
-            LOG.error('Cannot connect to the RCB message bus.')
+            LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
             raise e
         return client, log_server
 
