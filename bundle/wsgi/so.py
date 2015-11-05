@@ -208,7 +208,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
             self.setup_amqp(amqp_url, client)
         except Exception as e:
             LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
-            if attempts < 0:
+            if attempts > 0:
                 LOG.debug('Sleeping for 10 secs')
                 attempts = attempts - 1
                 time.sleep(10)
