@@ -19,6 +19,7 @@ Sample SO.
 
 import json
 import os
+import time
 import threading
 
 from bonfire.graylog_api import GraylogAPI, SearchQuery, SearchRange
@@ -177,11 +178,14 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         for kv in stack_output:
                 attributes[kv['output_key']] = kv['output_value']
 
-        amqp_url = "amqp://code:pass1234@messaging.demonstrator.info"
+        amqp_url = ''  # "amqp://code:pass1234@messaging.demonstrator.info"
         if 'mcn.endpoint.rcb.mq' in attributes:
             # TODO return the username and password in the heat response
             # XXX username and password is hardcoded!
             amqp_url = 'amqp://guest:guest@' + attributes['mcn.endpoint.rcb.mq']
+        else:
+            LOG.error('mcn.endpoint.rcb.mq is not present in the stack output. amqp_url=' + amqp_url)
+            raise RuntimeError('mcn.endpoint.rcb.mq is not present in the stack output. amqp_url=' + amqp_url)
 
         client, log_server = self.setup_connections(amqp_url)
 
@@ -197,28 +201,37 @@ class SOD(service_orchestrator.Decision, threading.Thread):
 
     def setup_connections(self, amqp_url):
         LOG.debug('Setting up graylog API...')
+        attempts = 20
         log_server = GraylogAPI(self.logserver_url, self.logserver_port, self.logserver_user, self.logserver_pass)
         client = puka.Client(amqp_url)
         try:
-            LOG.debug('AMQP connection to: ' + amqp_url)
-            promise = client.connect()
-            client.wait(promise)
-
-            LOG.debug('AMQP exchange declaration: mcn')
-            promise = client.exchange_declare(exchange='mcn', type='topic', durable=True)
-            client.wait(promise)
-
-            LOG.debug('AMQP queue declaration: mcnevents')
-            promise = client.queue_declare('mcnevents', durable=True)
-            client.wait(promise)
-
-            LOG.debug('AMQP queue/exchange binding: mcnevents->mcn Routing key: events')
-            promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
-            client.wait(promise)
+            self.setup_amqp(amqp_url, client)
         except Exception as e:
             LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
-            raise e
+            if attempts < 0:
+                LOG.debug('Sleeping for 10 secs')
+                attempts = attempts - 1
+                time.sleep(10)
+                self.setup_amqp(amqp_url, client)
+            else:
+                LOG.error('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
+                raise e
+
         return client, log_server
+
+    def setup_amqp(self, amqp_url, client):
+        LOG.debug('AMQP connection to: ' + amqp_url)
+        promise = client.connect()
+        client.wait(promise)
+        LOG.debug('AMQP exchange declaration: mcn')
+        promise = client.exchange_declare(exchange='mcn', type='topic', durable=True)
+        client.wait(promise)
+        LOG.debug('AMQP queue declaration: mcnevents')
+        promise = client.queue_declare('mcnevents', durable=True)
+        client.wait(promise)
+        LOG.debug('AMQP queue/exchange binding: mcnevents->mcn Routing key: events')
+        promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
+        client.wait(promise)
 
     def bill_stop_events(self, client, log_server):
         stop_billing_query = SearchQuery(search_range=self.sr, query='phase_event:done AND so_phase:destroy')
