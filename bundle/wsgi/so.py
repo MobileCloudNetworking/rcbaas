@@ -206,12 +206,12 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         client = puka.Client(amqp_url)
 
         try:
+            time.sleep(15)  # XXX hack
             LOG.debug('AMQP connection to: ' + amqp_url)
             promise = client.connect()
             client.wait(promise)
         except:
             LOG.error('Cannot connect to the RCB message bus.')
-            client.close()
             while attempts > 0:
                 LOG.debug('Sleeping for 10 secs')
                 time.sleep(10)
