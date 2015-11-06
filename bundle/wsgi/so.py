@@ -210,7 +210,8 @@ class SOD(service_orchestrator.Decision, threading.Thread):
             promise = client.connect()
             client.wait(promise)
         except:
-            LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
+            LOG.error('Cannot connect to the RCB message bus.')
+            client.close()
             while attempts > 0:
                 LOG.debug('Sleeping for 10 secs')
                 time.sleep(10)
@@ -219,6 +220,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
                 client.wait(promise)
                 attempts = attempts - 1
             else:
+                client.close()
                 LOG.error('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
                 raise RuntimeError('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
 
