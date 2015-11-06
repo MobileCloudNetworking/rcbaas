@@ -206,7 +206,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         client = puka.Client(amqp_url)
 
         try:
-            time.sleep(15)  # XXX hack
+            time.sleep(15)  # let the system settle :-)
             LOG.debug('AMQP connection to: ' + amqp_url)
             promise = client.connect()
             client.wait(promise)
@@ -229,7 +229,6 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         return client, log_server
 
     def setup_amqp(self, amqp_url, client):
-
         LOG.debug('AMQP exchange declaration: mcn')
         promise = client.exchange_declare(exchange='mcn', type='topic', durable=True)
         client.wait(promise)
@@ -239,7 +238,6 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         LOG.debug('AMQP queue/exchange binding: mcnevents->mcn Routing key: events')
         promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
         client.wait(promise)
-        return True
 
     def bill_stop_events(self, client, log_server):
         stop_billing_query = SearchQuery(search_range=self.sr, query='phase_event:done AND so_phase:destroy')
