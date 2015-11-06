@@ -204,7 +204,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         attempts = 20
         log_server = GraylogAPI(self.logserver_url, self.logserver_port, self.logserver_user, self.logserver_pass)
         client = puka.Client(amqp_url)
-        
+
         try:
             LOG.debug('AMQP connection to: ' + amqp_url)
             promise = client.connect()
