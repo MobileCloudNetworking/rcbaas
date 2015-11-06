@@ -206,16 +206,17 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         client = puka.Client(amqp_url)
         try:
             self.setup_amqp(amqp_url, client)
-        except Exception as e:
+        except:
             LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
-            if attempts > 0:
+            while (attempts > 0) or (not complete):
                 LOG.debug('Sleeping for 10 secs')
                 attempts = attempts - 1
                 time.sleep(10)
-                self.setup_amqp(amqp_url, client)
+                complete = self.setup_amqp(amqp_url, client)
+
             else:
                 LOG.error('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
-                raise e
+                raise RuntimeError('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
 
         return client, log_server
 
@@ -232,6 +233,7 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         LOG.debug('AMQP queue/exchange binding: mcnevents->mcn Routing key: events')
         promise = client.queue_bind(queue='mcnevents', exchange='mcn', routing_key='events')
         client.wait(promise)
+        return True
 
     def bill_stop_events(self, client, log_server):
         stop_billing_query = SearchQuery(search_range=self.sr, query='phase_event:done AND so_phase:destroy')
