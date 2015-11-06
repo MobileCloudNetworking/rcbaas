@@ -204,26 +204,30 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         attempts = 20
         log_server = GraylogAPI(self.logserver_url, self.logserver_port, self.logserver_user, self.logserver_pass)
         client = puka.Client(amqp_url)
+        
         try:
-            self.setup_amqp(amqp_url, client)
+            LOG.debug('AMQP connection to: ' + amqp_url)
+            promise = client.connect()
+            client.wait(promise)
         except:
             LOG.error('Cannot connect to the RCB message bus or there\'s an issue in configuring it.')
-            while (attempts > 0) or (not complete):
+            while attempts > 0:
                 LOG.debug('Sleeping for 10 secs')
-                attempts = attempts - 1
                 time.sleep(10)
-                complete = self.setup_amqp(amqp_url, client)
-
+                LOG.debug('AMQP connection to: ' + amqp_url)
+                promise = client.connect()
+                client.wait(promise)
+                attempts = attempts - 1
             else:
                 LOG.error('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
                 raise RuntimeError('Giving up attempting to connect to the AMQP bus after number of attempts: ' + str(attempts))
 
+        self.setup_amqp(amqp_url, client)
+
         return client, log_server
 
     def setup_amqp(self, amqp_url, client):
-        LOG.debug('AMQP connection to: ' + amqp_url)
-        promise = client.connect()
-        client.wait(promise)
+
         LOG.debug('AMQP exchange declaration: mcn')
         promise = client.exchange_declare(exchange='mcn', type='topic', durable=True)
         client.wait(promise)
