@@ -62,8 +62,14 @@ class SOE(service_orchestrator.Execution):
         """
         LOG.debug('Executing deployment logic')
         if self.stack_id is None:
-            self.stack_id = self.deployer.deploy(self.template, self.token, parameters={'UserName': 'pata@zhaw.ch',
-                                                                                        'Password': 'welcome2@icclab'})
+            username = 'pata@zhaw.ch'
+            password = 'welcome2@icclab'
+            
+            if username == '' or password == '':
+                raise RuntimeError('No username or password set. Please set one')
+
+            self.stack_id = self.deployer.deploy(self.template, self.token, parameters={'UserName': username,
+                                                                                        'Password': password})
             LOG.info('Resource dependencies - stack id: ' + self.stack_id)
 
     def provision(self):
@@ -139,7 +145,6 @@ class SOD(service_orchestrator.Decision, threading.Thread):
         self.logserver_port = 12900
         self.logserver_user = 'admin'
         self.logserver_pass = 'admin'
-        self.run_me = True
         self.sleepy = 30
 
     def run(self):
