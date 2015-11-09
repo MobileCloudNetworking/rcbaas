@@ -62,9 +62,9 @@ class SOE(service_orchestrator.Execution):
         """
         LOG.debug('Executing deployment logic')
         if self.stack_id is None:
-            username = 'pata@zhaw.ch'
-            password = 'welcome2@icclab'
-            
+            username = ''
+            password = ''
+
             if username == '' or password == '':
                 raise RuntimeError('No username or password set. Please set one')
 
